@@ -202,16 +202,16 @@ const deleteProject = async (req: Request, res: Response): Promise<Response> => 
 }
 const deleteTechProject = async (req: Request, res: Response): Promise<Response> => {
 
-    const { id, name } = req.params;
+    const { id } = req.params;
     const queryString: string = `
         DELETE FROM
             projects_technologies
         WHERE
-        projectId = $1 AND "technologyId" = $2;
+        "projectId" = $1 AND "technologyId" = $2;
     `
     const queryConfig: QueryConfig = {
         text: queryString,
-        values: [id, name],
+        values: [id, res.locals.techID.id],
     }
 
     await client.query(queryConfig);

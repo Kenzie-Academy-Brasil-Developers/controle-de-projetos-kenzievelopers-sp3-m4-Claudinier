@@ -133,6 +133,42 @@ const verifyTechName = async (req: Request, res: Response, next: NextFunction): 
     })
 
 }
+const verifyTechNameByParam = async (req: Request, res: Response, next: NextFunction): Promise<Response | void> => {
+    const { name } = req.params;
+
+    const queryString: string = `SELECT id
+    FROM technologies
+    WHERE name = $1;
+    `;
+
+    const queryConfig: QueryConfig = {
+        text: queryString,
+        values: [name]
+    }
+
+    const queryResult: QueryResult = await client.query(queryConfig);
+
+    if (queryResult.rowCount > 0) {
+
+        res.locals.techID = queryResult.rows[0];
+        return next();
+    }
+    return res.status(400).json({
+        message: "Technology not supported.",
+        options: [
+            "JavaScript",
+            "Python",
+            "React",
+            "Express.js",
+            "HTML",
+            "CSS",
+            "Django",
+            "PostgreSQL",
+            "MongoDB"
+        ]
+    })
+
+}
 const verifyTechNameExistsInProject = async (req: Request, res: Response, next: NextFunction): Promise<Response | void> => {
     const queryString: string = `SELECT *
     FROM projects_technologies
@@ -174,16 +210,45 @@ const verifyIdProject = async (req: Request, res: Response, next: NextFunction):
 
     const queryResult: QueryResult = await client.query(queryConfig);
 
-    
 
-    if (queryResult.rowCount == 0) {        
+
+    if (queryResult.rowCount == 0) {
         return res.status(404).json({
             message: "Project not found."
         });
     }
-    
+
     return next();
 }
+
+const verifyTechNameDeleteExistsInProject = async (req: Request, res: Response, next: NextFunction): Promise<Response | void> => {
+    const queryString: string = `SELECT *
+    FROM projects_technologies
+    WHERE "technologyId" = $1;
+    `;
+
+
+    const queryConfig: QueryConfig = {
+        text: queryString,
+        values: [res.locals.techID.id]
+    }
+
+
+    const queryResult: QueryResult = await client.query(queryConfig);
+
+
+    if (queryResult.rowCount === 0) {
+
+        return res.status(400).json({
+            "message": "Technology not related to the project."
+        })
+    }
+
+    return next();
+
+
+}
+
 
 export {
     verifyId,
@@ -192,5 +257,7 @@ export {
     verifyInfos,
     verifyTechName,
     verifyTechNameExistsInProject,
-    verifyIdProject
+    verifyIdProject,
+    verifyTechNameByParam,
+    verifyTechNameDeleteExistsInProject
 }
