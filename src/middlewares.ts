@@ -11,6 +11,9 @@ const verifyId = async (req: Request, res: Response, next: NextFunction): Promis
     if (req.route.path === "/projects" && req.method === "POST") {
         id = req.body.developerId;
     }
+    if (req.route.path === "/projects/:id" && req.method === "PATCH") {
+        id = req.body.developerId;
+    }
 
     const queryString: string = `SELECT *
     FROM developers

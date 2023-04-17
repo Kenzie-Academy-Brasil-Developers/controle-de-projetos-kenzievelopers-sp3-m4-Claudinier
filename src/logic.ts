@@ -182,10 +182,7 @@ const addTechInProject = async (req: Request, res: Response): Promise<Response> 
     );
 }
 
-const deleteProject = async (
-    req: Request,
-    res: Response
-): Promise<Response> => {
+const deleteProject = async (req: Request, res: Response): Promise<Response> => {
 
     const { id } = req.params;
     const queryString: string = `
@@ -203,10 +200,7 @@ const deleteProject = async (
 
     return res.send(204);
 }
-const deleteTechProject = async (
-    req: Request,
-    res: Response
-): Promise<Response> => {
+const deleteTechProject = async (req: Request, res: Response): Promise<Response> => {
 
     const { id, name } = req.params;
     const queryString: string = `
@@ -225,10 +219,7 @@ const deleteTechProject = async (
     return res.send(204);
 }
 
-const getlistProjectsTechnologies =async (
-    req: Request, 
-    res: Response
-): Promise<Response> => {
+const getlistProjectsTechnologies = async (req: Request, res: Response): Promise<Response> => {
 
 
     const id: number = Number(req.params.id)
@@ -264,6 +255,23 @@ const getlistProjectsTechnologies =async (
     return res.status(200).json(queryResult.rows)
 }
 
+const updateProject = async (req: Request, res: Response): Promise<Response> => {
+    const queryKeys = Object.keys(req.body);
+    const queryValues = Object.values(req.body);
+    const queryString: string = format(`UPDATE projects
+    SET (%I) = ROW(%L)
+    WHERE id=$1 RETURNING *;
+    `, queryKeys, queryValues);
+
+    const queryConfig: QueryConfig = {
+        text: queryString,
+        values: [req.params.id]
+    }
+    const queryResult: QueryResult = await client.query(queryConfig);
+
+    return res.status(200).json(queryResult.rows[0]);
+
+}
 export {
     createDeveloper,
     deleteDeveloper,
@@ -274,5 +282,6 @@ export {
     addTechInProject,
     deleteProject,
     deleteTechProject,
-    getlistProjectsTechnologies
+    getlistProjectsTechnologies, 
+    updateProject
 }
