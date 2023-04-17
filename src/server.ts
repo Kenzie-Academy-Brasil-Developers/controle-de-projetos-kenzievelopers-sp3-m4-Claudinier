@@ -1,8 +1,8 @@
 import { json } from "express";
 import app from "./app";
 import { startDatabase } from "./database";
-import { addTechInProject, createDeveloper, createDeveloperInfos, createProject, deleteDeveloper, getDeveloper, updateDeveloper } from "./logic";
-import { verifyEmal, verifyId, verifyInfos, verifySO, verifyTechName, verifyTechNameExistsInProject } from "./middlewares";
+import { addTechInProject, createDeveloper, createDeveloperInfos, createProject, deleteDeveloper, deleteProject, deleteTechProject, getDeveloper, getlistProjectsTechnologies, updateDeveloper } from "./logic";
+import { verifyEmal, verifyId, verifyIdProject, verifyInfos, verifySO, verifyTechName, verifyTechNameExistsInProject } from "./middlewares";
 
 const appPort = process.env.APP_PORT || 3000;
 
@@ -16,11 +16,11 @@ app.delete('/developers/:id', verifyId, deleteDeveloper);
 app.post('/developers/:id/infos', verifyId, verifySO, verifyInfos, createDeveloperInfos);
 
 app.post('/projects', verifyId, createProject);
-app.get('/projects/:id')
+app.get('/projects/:id',verifyIdProject,getlistProjectsTechnologies);
 app.patch('/projects/:id')
-app.delete('/projects/:id')
-app.post('/projects/:id/technologies', verifyId, verifyTechName, verifyTechNameExistsInProject, addTechInProject)
-app.delete('/projects/:id/technologies/:name', verifyId)
+app.delete('/projects/:id',verifyIdProject,deleteProject);
+app.post('/projects/:id/technologies', verifyId, verifyTechName, verifyTechNameExistsInProject, addTechInProject);
+app.delete('/projects/:id/technologies/:name',verifyIdProject,verifyTechName,deleteTechProject);
 
 
 

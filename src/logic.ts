@@ -105,8 +105,8 @@ const updateDeveloper = async (req: Request, res: Response): Promise<Response> =
 
     return res.status(200).json(queryResult.rows[0]);
 }
- const createProject = async (
-    req: Request, 
+const createProject = async (
+    req: Request,
     res: Response
 ): Promise<Response> => {
     const projectData: projectRegister = req.body
@@ -138,12 +138,12 @@ const addTechInProject = async (req: Request, res: Response): Promise<Response> 
     `;
 
     const addedIn = new Date();
-    const technologyId: string =  res.locals.techID.id;
+    const technologyId: string = res.locals.techID.id;
     const projectId = req.params.id;
 
     const queryConfig: QueryConfig = {
         text: queryString,
-        values: [ addedIn,technologyId ,projectId]
+        values: [addedIn, technologyId, projectId]
     }
 
     const queryResult: QueryResult = await client.query(queryConfig);
@@ -171,17 +171,98 @@ const addTechInProject = async (req: Request, res: Response): Promise<Response> 
     `
     const querySelectConfig: QueryConfig = {
         text: queryStringSelect,
-        values: [ projectId]
+        values: [projectId]
     }
 
     const querySelectResult: QueryResult = await client.query(querySelectConfig);
-   
+
 
     return res.status(201).json(
         querySelectResult.rows[0]
     );
 }
 
+const deleteProject = async (
+    req: Request,
+    res: Response
+): Promise<Response> => {
+
+    const { id } = req.params;
+    const queryString: string = `
+        DELETE FROM
+            projects
+        WHERE
+            "id" = $1;
+    `
+    const queryConfig: QueryConfig = {
+        text: queryString,
+        values: [id],
+    }
+
+    await client.query(queryConfig);
+
+    return res.send(204);
+}
+const deleteTechProject = async (
+    req: Request,
+    res: Response
+): Promise<Response> => {
+
+    const { id, name } = req.params;
+    const queryString: string = `
+        DELETE FROM
+            projects_technologies
+        WHERE
+        projectId = $1 AND "technologyId" = $2;
+    `
+    const queryConfig: QueryConfig = {
+        text: queryString,
+        values: [id, name],
+    }
+
+    await client.query(queryConfig);
+
+    return res.send(204);
+}
+
+const getlistProjectsTechnologies =async (
+    req: Request, 
+    res: Response
+): Promise<Response> => {
+
+
+    const id: number = Number(req.params.id)
+
+    const queryString: string = `
+    SELECT
+        pj."id" "projectId",
+        pj."name" "projectName",
+        pj."description" "projectDescription",
+        pj."estimatedTime" "projectEstimatedTime",
+        pj."repository" "projectRepository",
+        pj."startDate" "projectStartDate",
+        pj."endDate" "projectEndDate",
+        pj."developerId" "projectDeveloperId",
+        tech."id" "technologyId",
+        tech."name" "technologyName"
+    FROM
+        projects pj
+    LEFT JOIN
+        projects_technologies pt ON pj.id = pt."projectId"
+    LEFT JOIN
+        technologies tech ON tech."id" = pt."technologyId"
+    WHERE
+        pj.id = $1;
+    `
+
+    const queryConfig: QueryConfig = {
+        text: queryString,
+        values: [id],
+    }
+
+    const queryResult: QueryResult = await client.query(queryConfig)
+    return res.status(200).json(queryResult.rows)
+}
 
 export {
     createDeveloper,
@@ -190,5 +271,8 @@ export {
     updateDeveloper,
     getDeveloper,
     createProject,
-    addTechInProject
+    addTechInProject,
+    deleteProject,
+    deleteTechProject,
+    getlistProjectsTechnologies
 }

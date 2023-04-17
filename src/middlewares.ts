@@ -10,9 +10,6 @@ const verifyId = async (req: Request, res: Response, next: NextFunction): Promis
 
     if (req.route.path === "/projects" && req.method === "POST") {
         id = req.body.developerId;
-
-        console.log(id, "ID VERIFICADO!");
-
     }
 
     const queryString: string = `SELECT *
@@ -36,7 +33,6 @@ const verifyId = async (req: Request, res: Response, next: NextFunction): Promis
         "message": "Developer not found."
     });
 };
-
 const verifyEmal = async (req: Request, res: Response, next: NextFunction): Promise<Response | void> => {
 
     const { email } = req.body;
@@ -98,8 +94,6 @@ const verifyInfos = async (req: Request, res: Response, next: NextFunction): Pro
     }
     return next();
 }
-
-
 const verifyTechName = async (req: Request, res: Response, next: NextFunction): Promise<Response | void> => {
     const { name } = req.body;
 
@@ -152,11 +146,7 @@ const verifyTechNameExistsInProject = async (req: Request, res: Response, next: 
     const queryResult: QueryResult = await client.query(queryConfig);
 
 
-
-    console.log('RESULT',queryResult.rows);
-    
-
-    if(queryResult.rowCount > 0){
+    if (queryResult.rowCount > 0) {
 
         return res.status(409).json({
             "message": "This technology is already associated with the project"
@@ -168,11 +158,36 @@ const verifyTechNameExistsInProject = async (req: Request, res: Response, next: 
 
 }
 
+const verifyIdProject = async (req: Request, res: Response, next: NextFunction): Promise<Response | void> => {
+    const queryString: string = `SELECT id
+    FROM projects
+    WHERE "id" = $1;
+    `;
+
+    const queryConfig: QueryConfig = {
+        text: queryString,
+        values: [req.params.id]
+    }
+
+    const queryResult: QueryResult = await client.query(queryConfig);
+
+    
+
+    if (queryResult.rowCount == 0) {        
+        return res.status(404).json({
+            message: "Project not found."
+        });
+    }
+    
+    return next();
+}
+
 export {
     verifyId,
     verifyEmal,
     verifySO,
     verifyInfos,
     verifyTechName,
-    verifyTechNameExistsInProject
+    verifyTechNameExistsInProject,
+    verifyIdProject
 }
