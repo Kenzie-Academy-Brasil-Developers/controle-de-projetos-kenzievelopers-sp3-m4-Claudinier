@@ -7,12 +7,12 @@ const verifyId = async (req: Request, res: Response, next: NextFunction): Promis
     let { id } = req.params;
 
 
-    
-    if(req.route.path === "/projects" && req.method === "POST"){
+
+    if (req.route.path === "/projects" && req.method === "POST") {
         id = req.body.developerId;
 
-        console.log(id,"ID VERIFICADO!");
-        
+        console.log(id, "ID VERIFICADO!");
+
     }
 
     const queryString: string = `SELECT *
@@ -101,8 +101,9 @@ const verifyInfos = async (req: Request, res: Response, next: NextFunction): Pro
 
 
 const verifyTechName = async (req: Request, res: Response, next: NextFunction): Promise<Response | void> => {
-    const {name} = req.body;
-    const queryString: string = `SELECT *
+    const { name } = req.body;
+
+    const queryString: string = `SELECT id
     FROM technologies
     WHERE name = $1;
     `;
@@ -114,23 +115,64 @@ const verifyTechName = async (req: Request, res: Response, next: NextFunction): 
 
     const queryResult: QueryResult = await client.query(queryConfig);
 
+    if (queryResult.rowCount > 0) {
+
+        res.locals.techID = queryResult.rows[0];
+        return next();
+    }
+    return res.status(400).json({
+        message: "Technology not supported.",
+        options: [
+            "JavaScript",
+            "Python",
+            "React",
+            "Express.js",
+            "HTML",
+            "CSS",
+            "Django",
+            "PostgreSQL",
+            "MongoDB"
+        ]
+    })
+
+}
+const verifyTechNameExistsInProject = async (req: Request, res: Response, next: NextFunction): Promise<Response | void> => {
+    const queryString: string = `SELECT *
+    FROM projects_technologies
+    WHERE "technologyId" = $1;
+    `;
+
+
+    const queryConfig: QueryConfig = {
+        text: queryString,
+        values: [res.locals.techID.id]
+    }
+
+
+    const queryResult: QueryResult = await client.query(queryConfig);
+
+
+
+    console.log('RESULT',queryResult.rows);
+    
+
     if(queryResult.rowCount > 0){
 
-        res.locals.techNameExists = true;
-        
-
-        return next();
+        return res.status(409).json({
+            "message": "This technology is already associated with the project"
+        })
     }
 
     return next();
 
-}
 
+}
 
 export {
     verifyId,
     verifyEmal,
     verifySO,
     verifyInfos,
-    verifyTechName
+    verifyTechName,
+    verifyTechNameExistsInProject
 }

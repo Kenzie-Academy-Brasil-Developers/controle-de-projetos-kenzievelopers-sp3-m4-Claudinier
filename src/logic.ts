@@ -131,24 +131,55 @@ const updateDeveloper = async (req: Request, res: Response): Promise<Response> =
 const addTechInProject = async (req: Request, res: Response): Promise<Response> => {
 
     const queryString: string = `
-    INSERT INTO technologies
-    ("developerSince", "preferredOS", "developerId")
+    INSERT INTO projects_technologies
+    ("addedIn","technologyId","projectId")
     VALUES($1, $2, $3)
      RETURNING *;
     `;
 
+    const addedIn = new Date();
+    const technologyId: string =  res.locals.techID.id;
+    const projectId = req.params.id;
 
     const queryConfig: QueryConfig = {
         text: queryString,
-        values: [ req.params.id]
+        values: [ addedIn,technologyId ,projectId]
     }
 
     const queryResult: QueryResult = await client.query(queryConfig);
-    return res.status(201).json(
-        queryResult.rows[0]
-    );
 
-    return res.status(201).json()
+
+    const queryStringSelect: string = `
+    SELECT
+        tech."id" "technologyId",
+        tech."name" "technologyName",
+        pj."id" "projectId",
+        pj."name" "projectName",
+        pj."description" "projectDescription",
+        pj."estimatedTime" "projectEstimatedTime",
+        pj."repository" "projectRepository",
+        pj."startDate" "projectStartDate",
+        pj."endDate" "projectEndDate"
+    FROM
+        projects pj
+    JOIN
+        projects_technologies pt ON pj.id = pt."projectId"
+    JOIN
+        technologies tech ON tech."id" = pt."technologyId"
+    WHERE
+        "projectId" = $1;
+    `
+    const querySelectConfig: QueryConfig = {
+        text: queryStringSelect,
+        values: [ projectId]
+    }
+
+    const querySelectResult: QueryResult = await client.query(querySelectConfig);
+   
+
+    return res.status(201).json(
+        querySelectResult.rows[0]
+    );
 }
 
 
