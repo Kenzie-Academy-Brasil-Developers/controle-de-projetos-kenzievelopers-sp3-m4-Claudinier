@@ -19,7 +19,7 @@ app.post('/projects', verifyId, createProject);
 app.get('/projects/:id',verifyIdProject,getlistProjectsTechnologies);
 app.patch('/projects/:id',verifyIdProject,verifyId,updateProject);
 app.delete('/projects/:id',verifyIdProject,deleteProject);
-app.post('/projects/:id/technologies', verifyId, verifyTechName, verifyTechNameExistsInProject, addTechInProject);
+app.post('/projects/:id/technologies', verifyId, verifyIdProject,verifyTechName, verifyTechNameExistsInProject, addTechInProject);
 app.delete('/projects/:id/technologies/:name',verifyIdProject,verifyTechNameByParam,verifyTechNameDeleteExistsInProject,deleteTechProject);
 
 
